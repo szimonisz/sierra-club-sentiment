@@ -71,15 +71,31 @@ if __name__ == "__main__":
 	positive_tweet_tokens = twitter_samples.tokenized('positive_tweets.json')
 	negative_tweet_tokens = twitter_samples.tokenized('negative_tweets.json')
 
-	sierra_club_tweets_2019 = twitter.strings('./sierraclub_2019-06_to_2019-12.json')
-	sierra_club_tweets_2020 = twitter.strings('./sierraclub_since_2020-06.json')
+	sierra_club_tweet_data_2019, sierra_club_tweet_data_2020 = [], []
+        # each line in the json file contains a seperate json object
+	with open('./sierraclub_2019-06_to_2019-12.json') as f:
+		for line in f.readlines():
+			if not line.strip(): # skip empty lines
+				continue
+			sierra_club_tweet_data_2019.append(json.loads(line))
+	with open('./sierraclub_since_2020-06.json') as f:
+		for line in f.readlines():
+			if not line.strip(): # skip empty lines
+				continue
+			sierra_club_tweet_data_2020.append(json.loads(line))
 
-	tweet_tokens_2019 = twitter_samples.tokenized('./sierraclub_2019-06_to_2019-12.json')
-	tweet_tokens_2020 = twitter_samples.tokenized('./sierraclub_since_2020-06.json')
+	tokenized_tweets_2019, tokenized_tweets_2020 = [], []
+	for tweet in sierra_club_tweet_data_2019:
+		#print(tweet)
+		tweet_text = tweet['tweet']
+		tokenized_tweets_2019.append(remove_noise(word_tokenize(tweet_text)))
+
+	for tweet in sierra_club_tweet_data_2020:
+		tweet_text = tweet['tweet']
+		tokenized_tweets_2020.append(remove_noise(word_tokenize(tweet_text)))
 
 	# a stop word is the kind of word a search engine ignores to be efficient (is, at, my, I, be, etc.)
 	stop_words = stopwords.words('english')
-
 
 	positive_cleaned_tokens_list, negative_cleaned_tokens_list = [], []
 	for tokens in positive_tweet_tokens:
@@ -87,15 +103,15 @@ if __name__ == "__main__":
 	for tokens in negative_tweet_tokens:
 	    negative_cleaned_tokens_list.append(remove_noise(tokens, stop_words))
 
-	all_positive_words = get_all_words(positive_cleaned_tokens_list)
-	freq_dist_positive = FreqDist(all_positive_words)
-	print("\nTop 10 Most common words found in all positive tweets")
-	print(freq_dist_positive.most_common(10))
+	#all_positive_words = get_all_words(positive_cleaned_tokens_list)
+	#freq_dist_positive = FreqDist(all_positive_words)
+	#print("\nTop 10 Most common words found in all positive tweets")
+	#print(freq_dist_positive.most_common(10))
 
 	cleaned_tokens_list_2019, cleaned_tokens_list_2020 = [], []
-	for tokens in tweet_tokens_2019:
+	for tokens in tokenized_tweets_2019:
 	    cleaned_tokens_list_2019.append(remove_noise(tokens, stop_words))
-	for tokens in tweet_tokens_2020:
+	for tokens in tokenized_tweets_2020:
 	    cleaned_tokens_list_2020.append(remove_noise(tokens, stop_words))
 
 	positive_tokens_for_model = get_tweets_for_model(positive_cleaned_tokens_list)
@@ -111,14 +127,11 @@ if __name__ == "__main__":
 
 	classifier = NaiveBayesClassifier.train(train_data)
 
-	print("Accuracy is:", classify.accuracy(classifier, test_data))
-
-	print(classifier.show_most_informative_features(10))
-       
 	total_tweets_2019 = len(cleaned_tokens_list_2019)
 	total_tweets_2020 = len(cleaned_tokens_list_2020)
-	positive_count_2019 = 0
-	positive_count_2020 = 0
+	print("Total tweets 06/01/2019 -> 12/01/2019: " + str(total_tweets_2019))
+	print("Total tweets 06/01/2020 -> 12/01/2020: " + str(total_tweets_2020))
+	positive_count_2019, positive_count_2020 = 0, 0
 
 	for tweet_tokens in cleaned_tokens_list_2019:
 		if classifier.classify(dict([token, True] for token in tweet_tokens)) == "Positive":
@@ -126,16 +139,7 @@ if __name__ == "__main__":
 	for tweet_tokens in cleaned_tokens_list_2020:
 		if classifier.classify(dict([token, True] for token in tweet_tokens)) == "Positive":
 			positive_count_2020 += 1
-	print("Positive tweet percentage in 2019: " + positive_count_2019 / total_tweets_2019)
-	print("Positive tweet percentage in 2020: " + positive_count_2020 / total_tweets_2020)
-
-
-	#custom_tweet = "This place sucks! I can't believe how rude these people are."
-	#custom_tokens = remove_noise(word_tokenize(custom_tweet))
-	#print("\nCustom tweet: " + custom_tweet)
-	#print(classifier.classify(dict([token, True] for token in custom_tokens)))
-
-	#custom_tweet2 = "This store is amazing! Best place in town."
-	#custom_tokens2 = remove_noise(word_tokenize(custom_tweet2))
-	#print("\nCustom tweet: " + custom_tweet2)
-	#print(classifier.classify(dict([token, True] for token in custom_tokens2)))
+	print("Positive tweet percentage in 2019: ")
+	print(positive_count_2019 / total_tweets_2019)
+	print("Positive tweet percentage in 2020: ")
+	print(positive_count_2020 / total_tweets_2020)
