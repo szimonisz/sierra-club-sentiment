@@ -78,7 +78,7 @@ if __name__ == "__main__":
 			if not line.strip(): # skip empty lines
 				continue
 			sierra_club_tweet_data_2019.append(json.loads(line))
-	with open('./sierraclub_since_2020-06.json') as f:
+	with open('sierraclub_2020-06_to_2020-12.json') as f:
 		for line in f.readlines():
 			if not line.strip(): # skip empty lines
 				continue
