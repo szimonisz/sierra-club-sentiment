@@ -1,5 +1,8 @@
 # sierra-club-sentiment
 
+![Project slide 1](./images/slide1.jpeg "slide1 jpeg")
+![Project slide 2](./images/slide2.jpeg "slide2 jpeg")
+
 resources: 
 
 https://en.wikipedia.org/wiki/Naive_Bayes_classifier
